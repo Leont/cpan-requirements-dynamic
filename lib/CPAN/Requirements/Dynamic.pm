@@ -60,10 +60,10 @@ my %default_commands = (
 sub new {
 	my ($class, %args) = @_;
 	return bless {
-		config        => $args{config},
+		config        => $args{config}   || do { require ExtUtils::Config; ExtUtils::Config->new },
 		prereqs       => $args{prereqs}  || do { require CPAN::Meta::Prereqs; CPAN::Meta::Prereqs->new },
 		commands      => $args{commands} || \%default_commands,
-		pureperl_only => $args{'pureperl-only'},
+		pureperl_only => $args{pureperl_only},
 	}, $class;
 }
 
@@ -126,3 +126,96 @@ sub parse {
 1;
 
 # ABSTRACT: Dynamic prerequisites in meta files
+
+=head1 SYNOPSIS
+
+ my $prereqs1 = $dynamic->parse({
+   expressions => [
+     {
+       condition => [ 'has_perl' => 'v5.20.0' ],
+       prereqs => { runtime => { requires => { Bar => "1.3" } } }
+     },
+     {
+       condition => [ is_os => 'linux' ],
+       prereqs => { runtime => { requires => { Baz => "1.4" } } }
+     },
+     {
+       condition => [ config_enabled => 'usethreads' ],
+       prereqs => { runtime => { requires => { Quz => "1.5" } } }
+     },
+     {
+       condition => [ has_module => 'CPAN::Meta', '2' ],
+       prereqs => { runtime => { requires => { Wuz => "1.6" } } }
+     },
+     {
+       condition => [ and => [ has_module => 'CPAN::Meta', '2' ], [ is_os => 'non-existent' ] ],
+       prereqs => { runtime => { requires => { Euz => "1.7" } } }
+     },
+   ],
+ });
+
+=head1 DESCRIPTION
+
+This module implements
+
+=method new(%options)
+
+This constructor takes two (optional but recommended) named arguments
+
+=over 4
+
+=item * config
+
+This is an L<ExtUtils::Config|ExtUtils::Config> (compatible) object for reading configuration.
+
+=item * pureperl_only
+
+This should be the value of the C<pureperl-only> flag.
+
+=back
+
+=method parse(%options)
+
+This takes one named argument
+
+=head1 CONDITIONS
+
+=head2 can_xs
+
+This returns true if a compiler appears to be available.
+
+=head2 has_perl($version)
+
+Returns true if the perl version satisfies C<$version>. C<$version> is interpreted exactly as in the CPAN::Meta spec (e.g. C<1.2> equals C<< '>= 1.2' >>).
+
+=head2 has_module($module, $version = 0)
+
+Returns true if a module is installed on the system. If a C<$version> is given, it will also check if that version is provided. C<$version> is interpreted exactly as in the CPAN::Meta spec.
+
+=head2 is_os($os)
+
+Returns true if the OS name equals C<$os>.
+
+=head2 is_os_type($type)
+
+Returns true if the OS type equals C<$type>. Typical values of C<$type> are C<'Unix'> or C<'Windows'>.
+
+=head2 can_run($command)
+
+Returns true if a C<$command> can be run.
+
+=head2 config_enabled($variable)
+
+This returns true if a specific configuration variable is true
+
+=head2 has_env
+
+This returns true if the given environmental variable is true.
+
+=head2 want_pureperl
+
+=head1 LOGICAL CONDITIONS
+
+=head2 or
+
+=head2 and
