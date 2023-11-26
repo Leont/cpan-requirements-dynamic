@@ -11,6 +11,18 @@ sub version_satisfies {
 	return CPAN::Meta::Requirements::Range->with_string_requirement($range)->accepts($version);
 }
 
+sub is_interactive {
+    return -t STDIN && (-t STDOUT || !(-f STDOUT || -c STDOUT)) ? 1 : 0;
+}
+
+sub read_line {
+    return undef if $ENV{PERL_MM_USE_DEFAULT} || !is_interactive && eof STDIN;;
+
+    my $answer = <STDIN>;
+    chomp $answer if defined $answer;
+    return $answer;
+}
+
 my %default_commands = (
 	can_xs => sub {
 		my ($self) = @_;
@@ -58,6 +70,25 @@ my %default_commands = (
 	want_compiled => sub {
 		my ($self) = @_;
 		return defined $self->{pureperl_only} && $self->{pureperl_only} == 0;
+	},
+	y_n => sub {
+		my ($mess, $default) = @_;
+
+		die "y_n() called without a prompt message" unless $mess;
+		die "Invalid default value: y_n() default must be 'y' or 'n'" if $default && $default !~ /^[yn]/i;
+
+		while (1) {
+			local $|=1;
+			print "$mess [$default]";
+
+			my $answer = read_line;
+
+			$answer = $default if !defined $answer or !length $answer;
+
+			return 1 if $answer =~ /^y/i;
+			return 0 if $answer =~ /^n/i;
+			print "Please answer 'y' or 'n'.\n";
+		}
 	},
 );
 
@@ -249,6 +280,10 @@ This returns true if the user has indicated they want a pure-perl build.
 =head3 want_compiled
 
 This returns true if the user has explicitly indicated they do not want a pure-perl build.
+
+=head3 y_n($question, $default)
+
+This will ask a question to the user, or use the default if no answer is given.
 
 =head3 or
 
