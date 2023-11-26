@@ -14,27 +14,27 @@ my $prereqs1 = $dynamic->parse({
 	expressions => [
 		{ 
 			condition => [ has_perl => "$]" ],
-			prereqs => { runtime => { requires => { Foo => "1.2" } } }
+			prereqs => { Foo => "1.2" },
 		},
 		{
 			condition => [ '!has_perl' => 5 ],
-			prereqs => { runtime => { requires => { Bar => "1.3" } } }
+			prereqs => { Bar => "1.3" },
 		},
 		{
 			condition => [ is_os => $^O ],
-			prereqs => { runtime => { requires => { Baz => "1.4" } } }
+			prereqs => { Baz => "1.4" },
 		},
 		{
 			condition => [ or => [ config_enabled => 'useperlio' ] ],
-			prereqs => { runtime => { requires => { Quz => "1.5" } } }
+			prereqs => { Quz => "1.5" },
 		},
 		{
 			condition => [ has_module => 'CPAN::Meta', '2' ],
-			prereqs => { runtime => { requires => { Wuz => "1.6" } } }
+			prereqs => { Wuz => "1.6" },
 		},
 		{
 			condition => [ and => [ has_module => 'CPAN::Meta', '2' ], [ is_os => 'non-existent' ] ],
-			prereqs => { runtime => { requires => { Euz => "1.7" } } }
+			prereqs => { Euz => "1.7" },
 		},
 	],
 });

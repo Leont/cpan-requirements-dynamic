@@ -111,7 +111,12 @@ sub parse {
 	my @results;
 
 	for my $entry (@{ $argument->{expressions} }) {
-		push @results, CPAN::Meta::Prereqs->new($entry->{prereqs}) if $self->_run_condition($entry->{condition});
+		if ($self->_run_condition($entry->{condition})) {
+			my $phase = $entry->{phase} || 'runtime';
+			my $relation = $entry->{relation} || 'requires';
+			my $prereqs = { $phase => { $relation => $entry->{prereqs} } };
+			push @results, CPAN::Meta::Prereqs->new($prereqs);
+		}
 	}
 
 	if (@results) {
@@ -119,8 +124,6 @@ sub parse {
 	} else {
 		return $self->{prereqs};
 	}
-
-	return @results;
 }
 
 1;
@@ -133,23 +136,26 @@ sub parse {
    expressions => [
      {
        condition => [ 'has_perl' => 'v5.20.0' ],
-       prereqs => { runtime => { requires => { Bar => "1.3" } } }
+       prereqs => { Bar => "1.3" },
      },
      {
        condition => [ is_os => 'linux' ],
-       prereqs => { runtime => { requires => { Baz => "1.4" } } }
+       prereqs => { Baz => "1.4" },
      },
      {
        condition => [ config_enabled => 'usethreads' ],
-       prereqs => { runtime => { requires => { Quz => "1.5" } } }
+       prereqs => { Quz => "1.5" },
      },
      {
        condition => [ has_module => 'CPAN::Meta', '2' ],
-       prereqs => { runtime => { requires => { Wuz => "1.6" } } }
+       prereqs => { Wuz => "1.6" },
      },
      {
-       condition => [ and => [ has_module => 'CPAN::Meta', '2' ], [ is_os => 'non-existent' ] ],
-       prereqs => { runtime => { requires => { Euz => "1.7" } } }
+       condition => [ and =>
+         [ config_enabled => 'usethreads' ],
+         [ is_os => 'openbsd' ],
+       ],
+       prereqs => { Euz => "1.7" },
      },
    ],
  });
@@ -185,6 +191,8 @@ This takes the following named arguments:
 The condition of the dynamic requirement. This is an array with a name as first values and zero or more arguments following it. The semantics are described below under L</Conditions>
 
 =item * prereqs
+
+The prereqs is a hash with modules for keys and the required version as values (e.g. C<< { Foo => '1.234' } >>).
 
 =item * phase
 
