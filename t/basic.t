@@ -7,7 +7,7 @@ use Test::More;
 use Config;
 use CPAN::Requirements::Dynamic;
 
-my $dynamic = CPAN::Requirements::Dynamic->new(config => 'My::Config');
+my $dynamic = CPAN::Requirements::Dynamic->new;
 
 my $prereqs1 = $dynamic->parse({
 	version => 1,
@@ -43,7 +43,3 @@ my $result = $prereqs1->as_string_hash;
 is_deeply($result, { runtime => { requires => { Foo => '1.2', Baz => '1.4', Quz => '1.5', Wuz => '1.6' } } }) or diag explain $result;
 
 done_testing;
-
-sub My::Config::get {
-	return $Config{$_[1]};
-}
