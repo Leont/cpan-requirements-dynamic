@@ -176,46 +176,68 @@ This should be the value of the C<pureperl-only> flag.
 
 =method parse(%options)
 
-This takes one named argument
+This takes the following named arguments:
 
-=head1 CONDITIONS
+=over 4
 
-=head2 can_xs
+=item * condition
+
+The condition of the dynamic requirement. This is an array with a name as first values and zero or more arguments following it. The semantics are described below under L</Conditions>
+
+=item * prereqs
+
+=item * phase
+
+The phase of the requirements. This defaults to C<'runtime'>. Other valid values include C<'build'> and C<'test'>.
+
+=item * relation
+
+The relation of the requirements
+
+=back
+
+=head2 Conditions
+
+=head3 can_xs
 
 This returns true if a compiler appears to be available.
 
-=head2 has_perl($version)
+=head3 has_perl($version)
 
 Returns true if the perl version satisfies C<$version>. C<$version> is interpreted exactly as in the CPAN::Meta spec (e.g. C<1.2> equals C<< '>= 1.2' >>).
 
-=head2 has_module($module, $version = 0)
+=head3 has_module($module, $version = 0)
 
 Returns true if a module is installed on the system. If a C<$version> is given, it will also check if that version is provided. C<$version> is interpreted exactly as in the CPAN::Meta spec.
 
-=head2 is_os($os)
+=head3 is_os($os)
 
 Returns true if the OS name equals C<$os>.
 
-=head2 is_os_type($type)
+=head3 is_os_type($type)
 
 Returns true if the OS type equals C<$type>. Typical values of C<$type> are C<'Unix'> or C<'Windows'>.
 
-=head2 can_run($command)
+=head3 can_run($command)
 
 Returns true if a C<$command> can be run.
 
-=head2 config_enabled($variable)
+=head3 config_enabled($variable)
 
 This returns true if a specific configuration variable is true
 
-=head2 has_env
+=head3 has_env
 
 This returns true if the given environmental variable is true.
 
-=head2 want_pureperl
+=head3 want_pureperl
 
-=head1 LOGICAL CONDITIONS
+This returns true if the user has indicated they want a pure-perl build.
 
-=head2 or
+=head3 or
 
-=head2 and
+This takes an array or arrayrefs, each containing a condition expression. If at least one of the conditions is true this will also return true.
+
+=head3 and
+
+This takes an array or arrayrefs, each containing a condition expression. If all of the conditions are true this will also return true.
