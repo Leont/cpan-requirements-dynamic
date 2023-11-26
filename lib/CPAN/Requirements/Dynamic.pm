@@ -55,6 +55,10 @@ my %default_commands = (
 		my ($self) = @_;
 		return $self->{pureperl_only};
 	},
+	want_compiled => sub {
+		my ($self) = @_;
+		return defined $self->{pureperl_only} && $self->{pureperl_only} == 0;
+	},
 );
 
 sub new {
@@ -241,6 +245,10 @@ This returns true if the given environmental variable is true.
 =head3 want_pureperl
 
 This returns true if the user has indicated they want a pure-perl build.
+
+=head3 want_compiled
+
+This returns true if the user has explicitly indicated they do not want a pure-perl build.
 
 =head3 or
 
