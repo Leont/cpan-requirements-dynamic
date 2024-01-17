@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Carp 'croak';
+use Text::ParseWords 'shellwords';
 
 sub version_satisfies {
 	my ($version, $range) = @_;
@@ -128,7 +129,7 @@ sub _get_command {
 sub _run_condition {
 	my ($self, $condition) = @_;
 
-	my ($function, @arguments) = @{ $condition };
+	my ($function, @arguments) = shellwords($condition);
 	if (my ($name) = $function =~ / ^ ! (\w+) $ /xms) {
 		my $method = $self->_get_command($name);
 		return not $self->$method(@arguments);
@@ -170,26 +171,23 @@ sub parse {
  my $prereqs1 = $dynamic->parse({
    expressions => [
      {
-       condition => [ 'has_perl' => 'v5.20.0' ],
+       condition => 'has_perl v5.20.0',
        prereqs => { Bar => "1.3" },
      },
      {
-       condition => [ is_os => 'linux' ],
+       condition => 'is_os linux',
        prereqs => { Baz => "1.4" },
      },
      {
-       condition => [ config_enabled => 'usethreads' ],
+       condition => 'config_enabled usethreads',
        prereqs => { Quz => "1.5" },
      },
      {
-       condition => [ has_module => 'CPAN::Meta', '2' ],
+       condition => 'has_module CPAN::Meta 2' ],
        prereqs => { Wuz => "1.6" },
      },
      {
-       condition => [ and =>
-         [ config_enabled => 'usethreads' ],
-         [ is_os => 'openbsd' ],
-       ],
+       condition => 'and "is_os openbsd" "config_enabled usethreads"',
        prereqs => { Euz => "1.7" },
      },
    ],
@@ -223,7 +221,7 @@ This takes the following named arguments:
 
 =item * condition
 
-The condition of the dynamic requirement. This is an array with a name as first values and zero or more arguments following it. The semantics are described below under L</Conditions>
+The condition of the dynamic requirement. This is a shell-like string with a command name and zero or more arguments following it. The semantics are described below under L</Conditions>
 
 =item * prereqs
 
