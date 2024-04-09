@@ -6,18 +6,18 @@ use warnings;
 use Carp 'croak';
 use Text::ParseWords 'shellwords';
 
-sub version_satisfies {
+sub _version_satisfies {
 	my ($version, $range) = @_;
 	require CPAN::Meta::Requirements::Range;
 	return CPAN::Meta::Requirements::Range->with_string_requirement($range)->accepts($version);
 }
 
-sub is_interactive {
+sub _is_interactive {
     return -t STDIN && (-t STDOUT || !(-f STDOUT || -c STDOUT)) ? 1 : 0;
 }
 
-sub read_line {
-    return undef if $ENV{PERL_MM_USE_DEFAULT} || !is_interactive && eof STDIN;;
+sub _read_line {
+    return undef if $ENV{PERL_MM_USE_DEFAULT} || !_is_interactive && eof STDIN;;
 
     my $answer = <STDIN>;
     chomp $answer if defined $answer;
@@ -32,7 +32,7 @@ my %default_commands = (
 	},
 	has_perl => sub {
 		my ($self, $range) = @_;
-		return version_satisfies($], $range);
+		return _version_satisfies($], $range);
 	},
 	has_module => sub {
 		my ($self, $module, $range) = @_;
@@ -40,7 +40,7 @@ my %default_commands = (
 		my $data = Module::Metadata->new_from_module($module);
 		return !!0 unless $data;
 		return !!1 if not defined $range;
-		return version_satisfies($data->version($module), $range);
+		return _version_satisfies($data->version($module), $range);
 	},
 	can_run => sub {
 		my ($self, $command) = @_;
@@ -82,7 +82,7 @@ my %default_commands = (
 			local $|=1;
 			print "$mess [$default]";
 
-			my $answer = read_line;
+			my $answer = _read_line;
 
 			$answer = $default if !defined $answer or !length $answer;
 
