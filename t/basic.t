@@ -9,7 +9,7 @@ use CPAN::Requirements::Dynamic;
 
 my $dynamic = CPAN::Requirements::Dynamic->new;
 
-my $prereqs1 = $dynamic->parse({
+my $result1 = $dynamic->parse({
 	version => 1,
 	expressions => [
 		{ 
@@ -39,7 +39,7 @@ my $prereqs1 = $dynamic->parse({
 	],
 });
 
-my $result = $prereqs1->as_string_hash;
-is_deeply($result, { runtime => { requires => { Foo => '1.2', Baz => '1.4', Quz => '1.5', Wuz => '1.6' } } }) or diag explain $result;
+my $hash1 = $result1->as_string_hash;
+is_deeply($hash1, { runtime => { requires => { Foo => '1.2', Baz => '1.4', Quz => '1.5', Wuz => '1.6' } } }) or diag explain $hash1;
 
 done_testing;

@@ -144,22 +144,22 @@ sub _run_condition {
 sub parse {
 	my ($self, $argument) = @_;
 	my $version = $argument->{version};
-	my @results;
+	my @prereqs;
 
 	for my $entry (@{ $argument->{expressions} }) {
 		if ($self->_run_condition($entry->{condition})) {
-			my $phase = $entry->{phase} || 'runtime';
-			my $relation = $entry->{relation} || 'requires';
-			my $prereqs = { $phase => { $relation => $entry->{prereqs} } };
-			push @results, CPAN::Meta::Prereqs->new($prereqs);
+			if ($entry->{error}) {
+				die "$entry->{error}\n";
+			} elsif (my $prereqs = $entry->{prereqs}) {
+				my $phase = $entry->{phase} || 'runtime';
+				my $relation = $entry->{relation} || 'requires';
+				my $prereqs = { $phase => { $relation => $entry->{prereqs} } };
+				push @prereqs, CPAN::Meta::Prereqs->new($prereqs);
+			}
 		}
 	}
 
-	if (@results) {
-		return $self->{prereqs}->with_merged_prereqs(\@results);
-	} else {
-		return $self->{prereqs};
-	}
+	return $self->{prereqs}->with_merged_prereqs(\@prereqs);
 }
 
 1;
@@ -168,7 +168,7 @@ sub parse {
 
 =head1 SYNOPSIS
 
- my $prereqs1 = $dynamic->parse({
+ my $result = $dynamic->parse({
    expressions => [
      {
        condition => 'has_perl v5.20.0',
@@ -190,6 +190,10 @@ sub parse {
        condition => 'and "is_os openbsd" "config_enabled usethreads"',
        prereqs => { Euz => "1.7" },
      },
+     {
+       condition => '!is_os_type Unix',
+       error => 'OS unsupported',
+     }
    ],
  });
 
@@ -221,7 +225,7 @@ This takes the following named arguments:
 
 =item * condition
 
-The condition of the dynamic requirement. This is a shell-like string with a command name and zero or more arguments following it. The semantics are described below under L</Conditions>
+The condition of the dynamic requirement. This is a shell-like string with a command name and zero or more arguments following it. The semantics are described below under L</Conditions>.
 
 =item * prereqs
 
@@ -235,7 +239,13 @@ The phase of the requirements. This defaults to C<'runtime'>. Other valid values
 
 The relation of the requirements
 
+=item * error
+
+It will die with this error if set. The two messages C<"No support for OS"> and C<"OS unsupported"> have special meaning to CPAN Testers and are generally encouraged for situations that indicate not a failed build but an impossibility to build.
+
 =back
+
+C<condition> and one of C<prereqs> or C<error> are mandatory.
 
 =head2 Conditions
 
