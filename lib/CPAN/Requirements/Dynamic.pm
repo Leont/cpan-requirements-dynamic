@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Carp 'croak';
+use Parse::CPAN::Meta;
 use Text::ParseWords 'shellwords';
 
 sub _version_satisfies {
@@ -162,6 +163,12 @@ sub parse {
 	return $self->{prereqs}->with_merged_prereqs(\@prereqs);
 }
 
+sub parse_file {
+	my ($self, $filename) = @_;
+	my $structure = Parse::CPAN::Meta->load_file($filename);
+	return $self->parse($structure);
+}
+
 1;
 
 # ABSTRACT: Dynamic prerequisites in meta files
@@ -246,6 +253,10 @@ It will die with this error if set. The two messages C<"No support for OS"> and 
 =back
 
 C<condition> and one of C<prereqs> or C<error> are mandatory.
+
+=method parse_file($filename)
+
+This takes a filename, that can be either a YAML file or a JSON file, and parses it.
 
 =head2 Conditions
 
