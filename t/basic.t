@@ -17,7 +17,7 @@ my $result1 = $dynamic->evaluate({
 			prereqs => { Foo => "1.2" },
 		},
 		{
-			condition => '!has_perl 5',
+			condition => 'not has_perl 5',
 			prereqs => { Bar => "1.3" },
 		},
 		{

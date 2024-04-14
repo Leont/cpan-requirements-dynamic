@@ -130,16 +130,16 @@ sub _get_command {
 sub _run_condition {
 	my ($self, $condition) = @_;
 
+	my $negate = !!0;
 	my ($function, @arguments) = shellwords($condition);
-	if (my ($name) = $function =~ / ^ ! (\w+) $ /xms) {
-		my $method = $self->_get_command($name);
-		return not $self->$method(@arguments);
-	} elsif (($name) = $function =~ / ^ (\w+) $ /xms) {
-		my $method = $self->_get_command($name);
-		return $self->$method(@arguments);
-	} else {
-		croak "Can\'t evaluate dynamic prerequisite '$function'";
+	while ($function eq 'not') {
+		$function = shift @arguments;
+		$negate = !$negate;
 	}
+
+	my $method = $self->_get_command($function);
+	my $primary = $self->$method(@arguments);
+	return $negate ? !$primary : $primary;
 }
 
 sub evaluate {
@@ -198,7 +198,7 @@ sub evaluate_file {
        prereqs => { Euz => "1.7" },
      },
      {
-       condition => '!is_os_type Unix',
+       condition => 'not is_os_type Unix',
        error => 'OS unsupported',
      }
    ],
@@ -303,6 +303,10 @@ This returns true if the user has explicitly indicated they do not want a pure-p
 =head3 y_n($question, $default)
 
 This will ask a question to the user, or use the default if no answer is given.
+
+=head3 not
+
+This takes an expression and negates its value.
 
 =head3 or
 
