@@ -9,7 +9,7 @@ use CPAN::Requirements::Dynamic;
 
 my $dynamic = CPAN::Requirements::Dynamic->new;
 
-my $result1 = $dynamic->parse({
+my $result1 = $dynamic->evaluate({
 	version => 1,
 	expressions => [
 		{ 

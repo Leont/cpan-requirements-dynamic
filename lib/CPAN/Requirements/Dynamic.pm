@@ -138,11 +138,11 @@ sub _run_condition {
 		my $method = $self->_get_command($name);
 		return $self->$method(@arguments);
 	} else {
-		croak "Can\'t parse dynamic prerequisite '$function'";
+		croak "Can\'t evaluate dynamic prerequisite '$function'";
 	}
 }
 
-sub parse {
+sub evaluate {
 	my ($self, $argument) = @_;
 	my $version = $argument->{version};
 	my @prereqs;
@@ -163,10 +163,10 @@ sub parse {
 	return $self->{prereqs}->with_merged_prereqs(\@prereqs);
 }
 
-sub parse_file {
+sub evaluate_file {
 	my ($self, $filename) = @_;
 	my $structure = Parse::CPAN::Meta->load_file($filename);
-	return $self->parse($structure);
+	return $self->evaluate($structure);
 }
 
 1;
@@ -175,7 +175,7 @@ sub parse_file {
 
 =head1 SYNOPSIS
 
- my $result = $dynamic->parse({
+ my $result = $dynamic->evaluate({
    expressions => [
      {
        condition => 'has_perl v5.20.0',
@@ -224,7 +224,7 @@ This should be the value of the C<pureperl-only> flag.
 
 =back
 
-=method parse(%options)
+=method evaluate(%options)
 
 This takes the following named arguments:
 
@@ -254,9 +254,9 @@ It will die with this error if set. The two messages C<"No support for OS"> and 
 
 C<condition> and one of C<prereqs> or C<error> are mandatory.
 
-=method parse_file($filename)
+=method evaluate_file($filename)
 
-This takes a filename, that can be either a YAML file or a JSON file, and parses it.
+This takes a filename, that can be either a YAML file or a JSON file, and evaluates it.
 
 =head2 Conditions
 
