@@ -154,6 +154,7 @@ sub _run_condition {
 sub evaluate {
 	my ($self, $argument) = @_;
 	my $version = $argument->{version};
+	croak "Dynamic prereqs spec version $version is not supported" if int $version > 1;
 	my @prereqs;
 
 	for my $entry (@{ $argument->{expressions} }) {
