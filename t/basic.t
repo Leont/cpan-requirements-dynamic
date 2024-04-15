@@ -25,7 +25,7 @@ my $result1 = $dynamic->evaluate({
 			prereqs => { Baz => "1.4" },
 		},
 		{
-			condition => 'or "config_enabled useperlio"',
+			condition => 'or "config_defined useperlio"',
 			prereqs => { Quz => "1.5" },
 		},
 		{

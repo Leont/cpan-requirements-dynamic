@@ -25,15 +25,35 @@ sub _read_line {
     return $answer;
 }
 
+sub _prompt {
+	my ($mess, $default) = @_;
+
+	local $|=1;
+	print "$mess [$default]";
+	my $answer = _read_line;
+	$answer = $default if !defined $answer or !length $answer;
+
+	return $answer;
+}
+
 my %default_commands = (
 	can_xs => sub {
 		my ($self) = @_;
 		require ExtUtils::HasCompiler;
-		return ExtUtils::HasCompiler->can_compile_extension(config => $self->{config});
+		return ExtUtils::HasCompiler::can_compile_extension(config => $self->{config});
 	},
-	has_perl => sub {
-		my ($self, $range) = @_;
-		return _version_satisfies($], $range);
+	can_run => sub {
+		my ($self, $command) = @_;
+		require IPC::Cmd;
+		return IPC::Cmd::can_run($command);
+	},
+	config_defined => sub {
+		my ($self, $entry) = @_;
+		return $self->{config}->get($entry) eq 'define';
+	},
+	has_env => sub {
+		my ($self, $entry) = @_;
+		return $ENV{$entry};
 	},
 	has_module => sub {
 		my ($self, $module, $range) = @_;
@@ -43,27 +63,35 @@ my %default_commands = (
 		return !!1 if not defined $range;
 		return _version_satisfies($data->version($module), $range);
 	},
-	can_run => sub {
-		my ($self, $command) = @_;
-		require IPC::Cmd;
-		return IPC::Cmd::can_run($command);
+	has_perl => sub {
+		my ($self, $range) = @_;
+		return _version_satisfies($], $range);
 	},
-	config_enabled => sub {
-		my ($self, $entry) = @_;
-		return $self->{config}->get($entry);
+	is_extended => sub {
+		return $ENV{EXTENDED_TESTING};
 	},
-	has_env => sub {
-		my ($self, $entry) = @_;
-		return $ENV{$entry};
+	is_interactive => sub {
+		return _is_interactive;
 	},
 	is_os => sub {
-		my ($self, $wanted) = @_;
-		return $wanted eq $^O;
+		my ($self, @wanted) = @_;
+		return grep { $_ eq $^O } @wanted
 	},
 	is_os_type => sub {
 		my ($self, $wanted) = @_;
 		require Perl::OSType;
 		return Perl::OSType::is_os_type($wanted);
+	},
+	is_smoker => sub {
+		return $ENV{AUTOMATED_TESTING};
+	},
+	prompt_default_yes => sub {
+		my ($self, $message) = @_;
+		return _prompt("$message [Y/n]", "y") =~ /^y/i;
+	},
+	prompt_default_no => sub {
+		my ($self, $message) = @_;
+		return _prompt("$message [y/N]", "n") =~ /^y/i;
 	},
 	want_pureperl => sub {
 		my ($self) = @_;
@@ -72,25 +100,6 @@ my %default_commands = (
 	want_compiled => sub {
 		my ($self) = @_;
 		return defined $self->{pureperl_only} && $self->{pureperl_only} == 0;
-	},
-	y_n => sub {
-		my ($mess, $default) = @_;
-
-		die "y_n() called without a prompt message" unless $mess;
-		die "Invalid default value: y_n() default must be 'y' or 'n'" if $default && $default !~ /^[yn]/i;
-
-		while (1) {
-			local $|=1;
-			print "$mess [$default]";
-
-			my $answer = _read_line;
-
-			$answer = $default if !defined $answer or !length $answer;
-
-			return 1 if $answer =~ /^y/i;
-			return 0 if $answer =~ /^n/i;
-			print "Please answer 'y' or 'n'.\n";
-		}
 	},
 );
 
@@ -186,7 +195,7 @@ sub evaluate_file {
        prereqs => { Baz => "1.4" },
      },
      {
-       condition => 'config_enabled usethreads',
+       condition => 'config_defined usethreads',
        prereqs => { Quz => "1.5" },
      },
      {
@@ -200,7 +209,7 @@ sub evaluate_file {
      {
        condition => 'not is_os_type Unix',
        error => 'OS unsupported',
-     }
+     },
    ],
  });
 
@@ -264,33 +273,57 @@ This takes a filename, that can be either a YAML file or a JSON file, and evalua
 
 This returns true if a compiler appears to be available.
 
-=head3 has_perl($version)
+=head3 can_run($command)
 
-Returns true if the perl version satisfies C<$version>. C<$version> is interpreted exactly as in the CPAN::Meta spec (e.g. C<1.2> equals C<< '>= 1.2' >>).
+Returns true if a C<$command> can be run.
+
+=head3 config_defined($variable)
+
+This returns true if a specific configuration variable is defined.
+
+=head3 has_env($variable)
+
+This returns true if the environmental variable with the name in C<$variable> is true.
 
 =head3 has_module($module, $version = 0)
 
 Returns true if a module is installed on the system. If a C<$version> is given, it will also check if that version is provided. C<$version> is interpreted exactly as in the CPAN::Meta spec.
 
-=head3 is_os($os)
+=head3 has_perl($version)
 
-Returns true if the OS name equals C<$os>.
+Returns true if the perl version satisfies C<$version>. C<$version> is interpreted exactly as in the CPAN::Meta spec (e.g. C<1.2> equals C<< '>= 1.2' >>).
+
+=head3 is_extended
+
+Returns true if extended testing is asked for.
+
+=head3 is_interactive
+
+Returns true if installed from a terminal that can answer prompts.
+
+=head3 is_os(@systems)
+
+Returns true if the OS name equals any of C<@systems>.
 
 =head3 is_os_type($type)
 
 Returns true if the OS type equals C<$type>. Typical values of C<$type> are C<'Unix'> or C<'Windows'>.
 
-=head3 can_run($command)
+=head3 is_smoker
 
-Returns true if a C<$command> can be run.
-
-=head3 config_enabled($variable)
-
-This returns true if a specific configuration variable is true
+Returns true when running on a smoker.
 
 =head3 has_env
 
 This returns true if the given environmental variable is true.
+
+=head3 prompt_default_no
+
+This will ask a yes/no question to the user, defaulting to no.
+
+=head3 prompt_default_yes
+
+This will ask a yes/no question to the user, defaulting to yes.
 
 =head3 want_pureperl
 
@@ -299,10 +332,6 @@ This returns true if the user has indicated they want a pure-perl build.
 =head3 want_compiled
 
 This returns true if the user has explicitly indicated they do not want a pure-perl build.
-
-=head3 y_n($question, $default)
-
-This will ask a question to the user, or use the default if no answer is given.
 
 =head3 not
 
