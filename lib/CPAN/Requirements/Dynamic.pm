@@ -216,7 +216,7 @@ sub evaluate_file {
 
 =head1 DESCRIPTION
 
-This module implements
+This module implements a format for describing dynamic prerequisites of a distribution.
 
 =method new(%options)
 
@@ -236,7 +236,7 @@ This should be the value of the C<pureperl-only> flag.
 
 =method evaluate(%options)
 
-This takes the following named arguments:
+This takes a hash with two named arguments: C<version> and C<expressions>. The former is the version of the format, it currently defaults to 1. The latter is a list of hashes that can contain the following keys:
 
 =over 4
 
@@ -254,7 +254,7 @@ The phase of the requirements. This defaults to C<'runtime'>. Other valid values
 
 =item * relation
 
-The relation of the requirements
+The relation of the requirements. This defaults to C<'requires'>, but other valid values include C<'recommends'>, C<'suggests'> and C<'conflicts'>.
 
 =item * error
 
