@@ -13,27 +13,27 @@ my $result1 = $dynamic->evaluate({
 	version => 1,
 	expressions => [
 		{ 
-			condition => "has_perl $]",
+			condition => [ has_perl => "$]" ],
 			prereqs => { Foo => "1.2" },
 		},
 		{
-			condition => 'not has_perl 5',
+			condition => [ not => has_perl => 5 ],
 			prereqs => { Bar => "1.3" },
 		},
 		{
-			condition => "is_os $^O",
+			condition => [ is_os => $^O ],
 			prereqs => { Baz => "1.4" },
 		},
 		{
-			condition => 'or "config_defined useperlio"',
+			condition => [ or => [ config_defined => 'useperlio' ] ],
 			prereqs => { Quz => "1.5" },
 		},
 		{
-			condition => 'has_module CPAN::Meta 2',
+			condition => [ has_module => 'CPAN::Meta', '2' ],
 			prereqs => { Wuz => "1.6" },
 		},
 		{
-			condition => 'and "has_module CPAN::Meta 2" "is_os non-existent"',
+			condition => [ and => [ has_module => 'CPAN::Meta', '2' ], [ is_os => 'non-existent' ] ],
 			prereqs => { Euz => "1.7" },
 		},
 	],

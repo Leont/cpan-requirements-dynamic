@@ -5,7 +5,6 @@ use warnings;
 
 use Carp 'croak';
 use Parse::CPAN::Meta;
-use Text::ParseWords 'shellwords';
 
 sub _version_satisfies {
 	my ($version, $range) = @_;
@@ -140,7 +139,7 @@ sub _run_condition {
 	my ($self, $condition) = @_;
 
 	my $negate = !!0;
-	my ($function, @arguments) = shellwords($condition);
+	my ($function, @arguments) = @{ $condition };
 	while ($function eq 'not') {
 		$function = shift @arguments;
 		$negate = !$negate;
@@ -188,23 +187,26 @@ sub evaluate_file {
  my $result = $dynamic->evaluate({
    expressions => [
      {
-       condition => 'has_perl v5.20.0',
+       condition => [ 'has_perl' => 'v5.20.0' ],
        prereqs => { Bar => "1.3" },
      },
      {
-       condition => 'is_os linux',
+       condition => [ is_os => 'linux' ],
        prereqs => { Baz => "1.4" },
      },
      {
-       condition => 'config_defined usethreads',
+       condition => [ config_defined => 'usethreads' ],
        prereqs => { Quz => "1.5" },
      },
      {
-       condition => 'has_module CPAN::Meta 2' ],
+       condition => [ has_module => 'CPAN::Meta', '2' ],
        prereqs => { Wuz => "1.6" },
      },
      {
-       condition => 'and "is_os openbsd" "config_enabled usethreads"',
+       condition => [ and =>
+         [ config_defined => 'usethreads' ],
+         [ is_os => 'openbsd' ],
+       ],
        prereqs => { Euz => "1.7" },
      },
      {
@@ -242,7 +244,7 @@ This takes a hash with two named arguments: C<version> and C<expressions>. The f
 
 =item * condition
 
-The condition of the dynamic requirement. This is a shell-like string with a command name and zero or more arguments following it. The semantics are described below under L</Conditions>.
+The condition of the dynamic requirement. This is an array with a name as first values and zero or more arguments following it. The semantics are described below under L</Conditions>
 
 =item * prereqs
 
