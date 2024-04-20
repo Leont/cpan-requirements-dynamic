@@ -13,15 +13,15 @@ sub _version_satisfies {
 }
 
 sub _is_interactive {
-    return -t STDIN && (-t STDOUT || !(-f STDOUT || -c STDOUT)) ? 1 : 0;
+	return -t STDIN && (-t STDOUT || !(-f STDOUT || -c STDOUT)) ? 1 : 0;
 }
 
 sub _read_line {
-    return undef if $ENV{PERL_MM_USE_DEFAULT} || !_is_interactive && eof STDIN;;
+	return undef if $ENV{PERL_MM_USE_DEFAULT} || !_is_interactive && eof STDIN;;
 
-    my $answer = <STDIN>;
-    chomp $answer if defined $answer;
-    return $answer;
+	my $answer = <STDIN>;
+	chomp $answer if defined $answer;
+	return $answer;
 }
 
 sub _prompt {
