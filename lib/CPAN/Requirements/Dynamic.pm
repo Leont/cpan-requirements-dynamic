@@ -13,7 +13,7 @@ sub _version_satisfies {
 }
 
 sub _is_interactive {
-	return -t STDIN && (-t STDOUT || !(-f STDOUT || -c STDOUT)) ? 1 : 0;
+	return -t STDIN && (-t STDOUT || !(-f STDOUT || -c STDOUT));
 }
 
 sub _read_line {
@@ -52,7 +52,7 @@ my %default_commands = (
 	},
 	has_env => sub {
 		my ($self, $entry) = @_;
-		return $ENV{$entry};
+		return !!$ENV{$entry};
 	},
 	has_module => sub {
 		my ($self, $module, $range) = @_;
@@ -67,7 +67,7 @@ my %default_commands = (
 		return _version_satisfies($], $range);
 	},
 	is_extended => sub {
-		return $ENV{EXTENDED_TESTING};
+		return !!$ENV{EXTENDED_TESTING};
 	},
 	is_interactive => sub {
 		return _is_interactive;
@@ -82,7 +82,7 @@ my %default_commands = (
 		return Perl::OSType::is_os_type($wanted);
 	},
 	is_smoker => sub {
-		return $ENV{AUTOMATED_TESTING};
+		return !!$ENV{AUTOMATED_TESTING};
 	},
 	prompt_default_yes => sub {
 		my ($self, $message) = @_;
@@ -94,7 +94,7 @@ my %default_commands = (
 	},
 	want_pureperl => sub {
 		my ($self) = @_;
-		return $self->{pureperl_only};
+		return !!$self->{pureperl_only};
 	},
 	want_compiled => sub {
 		my ($self) = @_;
