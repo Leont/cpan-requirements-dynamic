@@ -96,6 +96,12 @@ my %default_commands = (
 		my ($self) = @_;
 		return !!$self->{pureperl_only};
 	},
+	want_xs => sub {
+		my ($self) = @_;
+		return !!0 if $self->{pureperl_only};
+		require ExtUtils::HasCompiler;
+		return ExtUtils::HasCompiler::can_compile_extension(config => $self->{config});
+	},
 	want_compiled => sub {
 		my ($self) = @_;
 		return defined $self->{pureperl_only} && $self->{pureperl_only} == 0;
