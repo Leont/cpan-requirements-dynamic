@@ -74,7 +74,7 @@ my %default_commands = (
 	},
 	is_os => sub {
 		my ($self, @wanted) = @_;
-		return grep { $_ eq $^O } @wanted
+		return !!grep { $_ eq $^O } @wanted
 	},
 	is_os_type => sub {
 		my ($self, $wanted) = @_;
@@ -216,7 +216,7 @@ sub evaluate_file {
        prereqs => { Euz => "1.7" },
      },
      {
-       condition => 'not is_os_type Unix',
+       condition => [ not => is_os_type => 'Unix'],
        error => 'OS unsupported',
      },
    ],
@@ -348,8 +348,8 @@ This takes an expression and negates its value.
 
 =head3 or
 
-This takes an array or arrayrefs, each containing a condition expression. If at least one of the conditions is true this will also return true.
+This takes list of arrayrefs, each containing a condition expression. If at least one of the conditions is true this will also return true.
 
 =head3 and
 
-This takes an array or arrayrefs, each containing a condition expression. If all of the conditions are true this will also return true.
+This takes a list of arrayrefs, each containing a condition expression. If all of the conditions are true this will also return true.
