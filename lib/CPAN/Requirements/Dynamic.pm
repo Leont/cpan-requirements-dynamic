@@ -20,7 +20,7 @@ my %default_commands = (
 	},
 	config_defined => sub {
 		my ($self, $entry) = @_;
-		return $self->{config}->get($entry) eq 'define';
+		return ($self->{config}->get($entry) // '') eq 'define';
 	},
 	has_env => sub {
 		my ($self, $entry) = @_;

@@ -1,6 +1,7 @@
 Revision history for CPAN-Requirements-Dynamic
 
 {{$NEXT}}
+          - Avoid undefinedness warning in config_defined
 
 0.002     2025-04-06 23:26:53+02:00 Europe/Brussels
           - Remove unnecesary conditions
